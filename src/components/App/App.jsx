@@ -43,7 +43,7 @@ export const App = () => {
       setLoading(true);
 
       setTimeout(() => {
-        const data = fetchImagesData(searchValue, page);
+        const data = fetchImagesData(searchValue, 1);
         data
           .then(collection => {
             const { hits, totalHits } = collection;
