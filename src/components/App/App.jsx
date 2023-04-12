@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { Component, useState } from 'react';
 import { Dna } from 'react-loader-spinner';
 
 import { GlobalStyle } from 'components/GlobalStyle';
@@ -11,170 +11,151 @@ import { Modal } from 'components/Modal/Modal';
 
 import { fetchImagesData } from 'components/Services/fetchImagesData';
 
-export class App extends Component {
-  state = {
-    searchText: '',
-    imageCollection: null,
-    page: 1,
-    totalPage: 0,
-    total: 0,
-    loading: false,
-    isShowModal: false,
-    largeimageurl: '',
-  };
+export const App = () => {
+  const [searchText, setSearchText] = useState('');
+  const [imageCollection, setImageCollection] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [isShowModal, setShowModal] = useState(false);
+  const [largeimageurl, setLargeImageURL] = useState('');
 
-  onSubmit = e => {
+  // state = {
+  //   searchText: '',
+  //   imageCollection: null,
+  //   page: 1,
+  //   totalPage: 0,
+  //   total: 0,
+  //   loading: false,
+  //   isShowModal: false,
+  //   largeimageurl: '',
+  // };
+
+  const onSubmit = e => {
     e.preventDefault();
     const searchValue = e.target.elements.searchValue.value
       .trim()
       .toLowerCase();
 
-    if (this.state.searchText !== searchValue) {
-      this.setState({
-        searchText: searchValue,
-        page: 1,
-        loading: true,
-      });
+    if (searchText !== searchValue) {
+      setSearchText(searchValue);
+      setPage(1);
+      setLoading(true);
+
       setTimeout(() => {
-        const data = fetchImagesData(searchValue, this.state.page);
+        const data = fetchImagesData(searchValue, page);
         data
           .then(collection => {
             const { hits, totalHits } = collection;
-            this.setBasicState(totalHits);
-            this.setState({
-              imageCollection: hits,
-            });
+            setBasicState(totalHits);
+            setImageCollection(hits);
           })
           .catch(err => {
             console.error(err.message);
           })
           .finally(() => {
-            this.setState({
-              loading: false,
-            });
+            setLoading(false);
           });
       }, 500);
     }
   };
 
-  toggleSpinner = spinnerStatus => {
-    this.setState({
-      loading: spinnerStatus,
-    });
+  const toggleSpinner = spinnerStatus => {
+    setLoading(spinnerStatus);
   };
 
-  setBasicState = total => {
-    this.setState({
-      totalPage: Math.ceil(total / 15),
-      total,
-    });
+  const setBasicState = total => {
+    setTotalPage(Math.ceil(total / 15));
+    setTotal(total);
   };
 
-  updateImgCollection = collection => {
-    this.setState({
-      imageCollection: collection,
-    });
+  const updateImgCollection = collection => {
+    setImageCollection(collection);
   };
 
-  handleClick = () => {
-    this.setState({
-      loading: true,
-    });
+  const handleClick = () => {
+    setLoading(true);
     setTimeout(() => {
-      const data = fetchImagesData(this.state.searchText, this.state.page + 1);
+      const data = fetchImagesData(searchText, page + 1);
       data
         .then(collection => {
-          this.setState(prevState => ({
-            page: prevState.page + 1,
-            imageCollection: [...prevState.imageCollection, ...collection.hits],
-          }));
+          setImageCollection([...imageCollection, ...collection.hits]);
         })
         .catch(err => {
           console.error(err.message);
         })
         .finally(() => {
-          this.setState({
-            loading: false,
-          });
+          setLoading(false);
         });
     }, 500);
   };
 
-  handleImageClick = e => {
+  const handleImageClick = e => {
     if (e.target.nodeName === 'IMG') {
       const selectedImg = e.target;
       const largeimageurl = selectedImg.getAttribute('largeimageurl');
-      this.setState({
-        largeimageurl,
-      });
-      this.showModal();
+      setLargeImageURL(largeimageurl);
+      showModal();
     }
   };
 
-  showModal = () => {
-    this.setState({
-      isShowModal: true,
-    });
+  const showModal = () => {
+    setShowModal(true);
   };
 
-  hideModal = () => {
-    this.setState({
-      isShowModal: false,
-    });
+  const hideModal = () => {
+    setShowModal(false);
   };
 
-  handleBackdropClick = e => {
+  const handleBackdropClick = e => {
     if (e.target === e.currentTarget) {
-      this.hideModal();
+      hideModal();
     }
   };
 
-  render() {
-    return (
-      <AppStyled>
-        <Searchbar onSubmit={this.onSubmit} />
+  return (
+    <AppStyled>
+      <Searchbar onSubmit={onSubmit} />
 
-        {this.state.searchText && (
-          <ImageGallery
-            searchText={this.state.searchText}
-            imageCollection={this.state.imageCollection}
-            page={this.state.page}
-            totalPage={this.state.totalPage}
-            setBasicState={this.setBasicState}
-            updateImgCollection={this.updateImgCollection}
-            toggleSpinner={this.toggleSpinner}
-            handleImageClick={this.handleImageClick}
-          />
-        )}
+      {searchText && (
+        <ImageGallery
+          searchText={searchText}
+          imageCollection={imageCollection}
+          page={page}
+          totalPage={totalPage}
+          setBasicState={setBasicState}
+          updateImgCollection={updateImgCollection}
+          toggleSpinner={toggleSpinner}
+          handleImageClick={handleImageClick}
+        />
+      )}
 
-        {this.state.loading && (
-          <Dna
-            visible={true}
-            height="80"
-            width="80"
-            ariaLabel="dna-loading"
-            wrapperStyle={{ width: '100%' }}
-            wrapperClass="dna-wrapper"
-          />
-        )}
+      {loading && (
+        <Dna
+          visible={true}
+          height="80"
+          width="80"
+          ariaLabel="dna-loading"
+          wrapperStyle={{ width: '100%' }}
+          wrapperClass="dna-wrapper"
+        />
+      )}
 
-        {this.state.imageCollection &&
-          this.state.totalPage > 1 &&
-          this.state.page < this.state.totalPage && (
-            <Button handleClick={this.handleClick} />
-          )}
+      {imageCollection && totalPage > 1 && page < totalPage && (
+        <Button handleClick={handleClick} />
+      )}
 
-        {this.state.isShowModal && (
-          <Modal
-            largeimageurl={this.state.largeimageurl}
-            showModal={this.showModal}
-            hideModal={this.hideModal}
-            onClick={this.handleBackdropClick}
-          />
-        )}
+      {isShowModal && (
+        <Modal
+          largeimageurl={largeimageurl}
+          showModal={showModal}
+          hideModal={hideModal}
+          onClick={handleBackdropClick}
+        />
+      )}
 
-        <GlobalStyle />
-      </AppStyled>
-    );
-  }
-}
+      <GlobalStyle />
+    </AppStyled>
+  );
+};
