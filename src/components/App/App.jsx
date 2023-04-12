@@ -1,4 +1,4 @@
-import { Component, useState } from 'react';
+import { useState } from 'react';
 import { Dna } from 'react-loader-spinner';
 
 import { GlobalStyle } from 'components/GlobalStyle';
@@ -16,7 +16,6 @@ export const App = () => {
   const [imageCollection, setImageCollection] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isShowModal, setShowModal] = useState(false);
   const [largeimageurl, setLargeImageURL] = useState('');
@@ -67,7 +66,6 @@ export const App = () => {
 
   const setBasicState = total => {
     setTotalPage(Math.ceil(total / 15));
-    setTotal(total);
   };
 
   const updateImgCollection = collection => {
@@ -77,6 +75,7 @@ export const App = () => {
   const handleClick = () => {
     setLoading(true);
     setTimeout(() => {
+      setPage(page + 1);
       const data = fetchImagesData(searchText, page + 1);
       data
         .then(collection => {
