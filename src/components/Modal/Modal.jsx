@@ -2,23 +2,22 @@ import { useEffect } from 'react';
 import { Overlay } from './Modal.styled';
 
 export const Modal = props => {
-  const handleKeyDown = e => {
-    const { hideModal } = props;
-
-    if (e.code === 'Escape') {
-      hideModal();
-    }
-  };
-
+  // -> Simulate componentDidMount
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-  }, []);
+    const handleKeyDown = e => {
+      const { hideModal } = props;
 
-  useEffect(() => {
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      if (e.code === 'Escape') {
+        hideModal();
+      }
     };
-  }, []);
+
+    document.addEventListener('keydown', handleKeyDown);
+    // -> Simulate ComponentWillUnmount
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [props]);
 
   return (
     <Overlay onClick={props.onClick}>
