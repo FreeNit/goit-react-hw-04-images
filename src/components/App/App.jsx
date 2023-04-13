@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dna } from 'react-loader-spinner';
 
 import { GlobalStyle } from 'components/GlobalStyle';
@@ -13,23 +13,12 @@ import { fetchImagesData } from 'components/Services/fetchImagesData';
 
 export const App = () => {
   const [searchText, setSearchText] = useState('');
-  const [imageCollection, setImageCollection] = useState(null);
+  const [imageCollection, setImageCollection] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isShowModal, setShowModal] = useState(false);
   const [largeimageurl, setLargeImageURL] = useState('');
-
-  // state = {
-  //   searchText: '',
-  //   imageCollection: null,
-  //   page: 1,
-  //   totalPage: 0,
-  //   total: 0,
-  //   loading: false,
-  //   isShowModal: false,
-  //   largeimageurl: '',
-  // };
 
   const onSubmit = e => {
     e.preventDefault();
@@ -40,15 +29,18 @@ export const App = () => {
     if (searchText !== searchValue) {
       setSearchText(searchValue);
       setPage(1);
-      setLoading(true);
+      setImageCollection([]);
+    }
+  };
 
+  useEffect(() => {
+    if (searchText) {
+      setLoading(true);
       setTimeout(() => {
-        const data = fetchImagesData(searchValue, 1);
+        const data = fetchImagesData(searchText, page);
         data
           .then(collection => {
-            const { hits, totalHits } = collection;
-            setBasicState(totalHits);
-            setImageCollection(hits);
+            setImageCollection(prevItems => [...prevItems, ...collection.hits]);
           })
           .catch(err => {
             console.error(err.message);
@@ -58,7 +50,13 @@ export const App = () => {
           });
       }, 500);
     }
-  };
+  }, [page, searchText]);
+
+  // useEffect(() => {
+  //   console.log(page);
+  //   console.log(searchText);
+  //   console.log('Fetch data');
+  // }, [page, searchText]);
 
   const toggleSpinner = spinnerStatus => {
     setLoading(spinnerStatus);
@@ -72,22 +70,8 @@ export const App = () => {
     setImageCollection(collection);
   };
 
-  const handleClick = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setPage(page + 1);
-      const data = fetchImagesData(searchText, page + 1);
-      data
-        .then(collection => {
-          setImageCollection([...imageCollection, ...collection.hits]);
-        })
-        .catch(err => {
-          console.error(err.message);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }, 500);
+  const loadMore = () => {
+    setPage(page => page + 1);
   };
 
   const handleImageClick = e => {
@@ -141,9 +125,7 @@ export const App = () => {
         />
       )}
 
-      {imageCollection && totalPage > 1 && page < totalPage && (
-        <Button handleClick={handleClick} />
-      )}
+      {imageCollection.length > 0 && <Button handleClick={loadMore} />}
 
       {isShowModal && (
         <Modal
